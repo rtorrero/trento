@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aquasecurity/bench-common/check"
 	"github.com/pkg/errors"
+	"github.com/rtorrero/bench-common/check"
 )
 
 type Checker func() (CheckResult, error)
