@@ -9,9 +9,9 @@
       - [HA Checker: Scenario Pacemaker on Azure](#ha-checker-scenario-pacemaker-on-azure)
       - [More coming](#more-coming)
   - [Clusters](#clusters)
-  - [Environments](#environments)
+  - [Systems](#systems)
   - [Landscapes](#landscapes)
-  - [SAP Systems](#sap-systems)
+  - [Environments](#environments)
   - [Agents](#agents)
 
 # About this document
@@ -20,7 +20,7 @@ tries to cover and its main scope. Further, additional details are provided on
 the functionality of each view.
 
 # Goal
->Provide simple to use front end for all SAP relevant OS related tasks for SAP 
+>Provide simple to use front end for all relevant OS related tasks for SAP 
 >workloads
 
 This means that `trento` focuses on the OS-related tasks without stepping into 
@@ -75,21 +75,22 @@ including the information of the status of each node and the role associated to
 each node. This view also allows to see the resources, their type and distribution
 within the cluster nodes.
 
-## Environments
-The environments view currently only shows a detail of the landscapes that
-are part of an environment.
-
-## Landscapes
-This view at the moment shows a list of the discovered landscapes, detailing the
-count of SAP systems inside each of them as well as the total number of hosts
-that belong to these SAP systems.
-
-## SAP Systems
-In this view are listed the SAP systems, usually identified by a SID or 
+## Systems
+In this view are listed the systems, usually identified by a SID or 
 `SAP System Idenfication` string such as `PRD`, `DEV`, or `QAS`. These are used
 often to identify productive, development and quality assurance systems.
 In this view we get an overview of the distribution of each SID, the number of
 hosts disvered of each of them and additional details.
+
+## Landscapes
+The landscapes view shows a list of the discovered landscapes, detailing the
+count of systems inside each of them as well as the total number of hosts
+that belong to these systems.
+
+## Environments
+The environments view currently shows a detail of the environments that have
+been found and the landscapes that each one of these environments has as well
+as the number of systems, hosts and the global status.
 
 ## Agents
 Though not specifically a view/section, as it is the core component of `trento`,
