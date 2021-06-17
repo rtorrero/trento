@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -8,11 +9,13 @@ import (
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
+	"github.com/trento-project/trento/internal"
 )
 
 const (
 	cibAdmPath             string = "/usr/sbin/cibadmin"
 	crmmonAdmPath          string = "/usr/sbin/crm_mon"
+	corosyncKeyPath        string = "/etc/corosync/authkey"
 	clusterNameProperty    string = "cib-bootstrap-options-cluster-name"
 	stonithEnabled         string = "cib-bootstrap-options-stonith-enabled"
 	stonithResourceMissing string = "notconfigured"
@@ -24,6 +27,7 @@ type Cluster struct {
 	Cib    cib.Root    `mapstructure:"cib,omitempty"`
 	Crmmon crmmon.Root `mapstructure:"crmmon,omitempty"`
 	SBD    SBD         `mapstructure:"sbd,omitempty"`
+	Id     string      `mapstructure:"id"`
 }
 
 func NewCluster() (Cluster, error) {
@@ -46,9 +50,13 @@ func NewCluster() (Cluster, error) {
 	}
 
 	cluster.Crmmon = crmmonConfig
+	cluster.Id, err = getCorosyncAuthkey(corosyncKeyPath)
+	if err != nil {
+		return cluster, err
+	}
 
 	if cluster.IsFencingSBD() {
-		sbdData, err := NewSBD(cluster.Name(), SBDPath, SBDConfigPath)
+		sbdData, err := NewSBD(cluster.Id, SBDPath, SBDConfigPath)
 		if err != nil {
 			return cluster, err
 		}
@@ -57,6 +65,12 @@ func NewCluster() (Cluster, error) {
 	}
 
 	return cluster, nil
+}
+
+func getCorosyncAuthkey(corosyncKeyPath string) (string, error) {
+	kp, err := internal.Md5sum(corosyncKeyPath)
+	log.Println(kp)
+	return kp, err
 }
 
 func (c *Cluster) Name() string {

@@ -10,8 +10,8 @@ import (
 )
 
 func (c *Cluster) getKVPath() string {
-	name := c.Name()
-	kvPath := path.Join(consul.KvClustersPath, name)
+	//name := c.Name()
+	kvPath := path.Join(consul.KvClustersPath, c.Id)
 
 	return kvPath
 }
