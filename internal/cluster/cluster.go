@@ -1,13 +1,11 @@
 package cluster
 
 import (
-	"flag"
 	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
@@ -92,13 +90,21 @@ func getCorosyncAuthkey(corosyncKeyPath string) (string, error) {
 }
 
 func getName() string {
-	words := flag.Int("words", 2, "The number of words in the pet name")
+	/*words := flag.Int("words", 1, "")
 	separator := flag.String("separator", "-", "The separator between words in the pet name")
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	flag.Parse()
-	rand.Seed(time.Now().UnixNano())
-	return petname.Generate(*words, *separator)
+	flag.Parse()*/
+	keyStr, err := getCorosyncAuthkey(corosyncKeyPath)
+	if err != nil {
+		return ""
+	}
+	intVar, err := strconv.ParseInt(keyStr, 0, 64)
+	if err != nil {
+		return ""
+	}
+	rand.Seed(intVar)
+	return petname.Generate(1, "-")
 }
 
 func (c *Cluster) IsDc() bool {
