@@ -139,6 +139,7 @@ func TestStore(t *testing.T) {
 			"Version": "1.2.3",
 		},
 		"id": "",
+		//"name": "cluster_name",
 		"sbd": map[string]interface{}{
 			"devices": []*SBDDevice{
 				&SBDDevice{

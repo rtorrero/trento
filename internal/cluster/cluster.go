@@ -1,14 +1,18 @@
 package cluster
 
 import (
+	"flag"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/trento-project/trento/internal"
 )
 
@@ -28,6 +32,7 @@ type Cluster struct {
 	Crmmon crmmon.Root `mapstructure:"crmmon,omitempty"`
 	SBD    SBD         `mapstructure:"sbd,omitempty"`
 	Id     string      `mapstructure:"id"`
+	Name   string      `mapstructure:"name,omitempty"`
 }
 
 func NewCluster() (Cluster, error) {
@@ -50,9 +55,22 @@ func NewCluster() (Cluster, error) {
 	}
 
 	cluster.Crmmon = crmmonConfig
+
+	// Set MD5-hashed key based on the corosync auth key
 	cluster.Id, err = getCorosyncAuthkey(corosyncKeyPath)
 	if err != nil {
 		return cluster, err
+	}
+
+	// Handle not named clusters
+	for _, prop := range cibConfig.Configuration.CrmConfig.ClusterProperties {
+		if prop.Id == clusterNameProperty {
+			cluster.Name = prop.Value
+		}
+	}
+
+	if cluster.Name == "" {
+		cluster.Name = getName()
 	}
 
 	if cluster.IsFencingSBD() {
@@ -73,15 +91,14 @@ func getCorosyncAuthkey(corosyncKeyPath string) (string, error) {
 	return kp, err
 }
 
-func (c *Cluster) Name() string {
-	// Handle not named clusters
-	for _, prop := range c.Cib.Configuration.CrmConfig.ClusterProperties {
-		if prop.Id == clusterNameProperty {
-			return prop.Value
-		}
-	}
+func getName() string {
+	words := flag.Int("words", 2, "The number of words in the pet name")
+	separator := flag.String("separator", "-", "The separator between words in the pet name")
+	rand.Seed(time.Now().UTC().UnixNano())
 
-	return ""
+	flag.Parse()
+	rand.Seed(time.Now().UnixNano())
+	return petname.Generate(*words, *separator)
 }
 
 func (c *Cluster) IsDc() bool {
