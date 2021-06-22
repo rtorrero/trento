@@ -41,7 +41,7 @@ func (d ClusterDiscovery) Discover() error {
 		return err
 	}
 
-	err = storeClusterMetadata(d.discovery.client, cluster.Id)
+	err = storeClusterMetadata(d.discovery.client, cluster.Name())
 	if err != nil {
 		return err
 	}
