@@ -1,8 +1,9 @@
 package cluster
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
@@ -29,7 +30,7 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, "cluster_name")
+	kvPath := path.Join(consul.KvClustersPath, "")
 
 	expectedPutMap := map[string]interface{}{
 		"cib": map[string]interface{}{
@@ -137,6 +138,7 @@ func TestStore(t *testing.T) {
 			},
 			"Version": "1.2.3",
 		},
+		"id": "",
 		"sbd": map[string]interface{}{
 			"devices": []*SBDDevice{
 				&SBDDevice{
@@ -168,6 +170,7 @@ func TestStore(t *testing.T) {
 		},
 	}
 
+	log.Printf("My KV path is : %s", kvPath)
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
 	testLock := consulApi.Lock{}
