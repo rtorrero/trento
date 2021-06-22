@@ -63,15 +63,15 @@ func NewCluster() (Cluster, error) {
 	}
 
 	// Handle not named clusters
-	for _, prop := range cibConfig.Configuration.CrmConfig.ClusterProperties {
+	/*for _, prop := range cibConfig.Configuration.CrmConfig.ClusterProperties {
 		if prop.Id == clusterNameProperty {
 			cluster.Name = prop.Value
 		}
-	}
+	}*/
 
-	if cluster.Name == "" {
-		cluster.Name = getName()
-	}
+	//if cluster.Name == "" {
+	cluster.Name = getName()
+	//}
 
 	if cluster.IsFencingSBD() {
 		sbdData, err := NewSBD(cluster.Id, SBDPath, SBDConfigPath)
