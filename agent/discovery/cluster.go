@@ -49,9 +49,9 @@ func (d ClusterDiscovery) Discover() error {
 	return nil
 }
 
-func storeClusterMetadata(client consul.Client, clusterId string) error {
+func storeClusterMetadata(client consul.Client, clusterName string) error {
 	metadata := hosts.Metadata{
-		Cluster: clusterId,
+		Cluster: clusterName,
 	}
 	err := metadata.Store(client)
 	if err != nil {

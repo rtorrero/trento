@@ -69,6 +69,7 @@ func NewCluster() (Cluster, error) {
 
 	//if cluster.Name == "" {
 	cluster.Name = getName()
+	log.Printf("Generated name was: %s", cluster.Name)
 	//}
 
 	if cluster.IsFencingSBD() {
