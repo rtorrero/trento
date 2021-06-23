@@ -38,6 +38,7 @@ func TestClustersListHandler(t *testing.T) {
 					},
 				},
 			},
+			"name": "test_cluster",
 		},
 		"2nd_cluster": map[string]interface{}{
 			"cib": map[string]interface{}{
@@ -62,6 +63,7 @@ func TestClustersListHandler(t *testing.T) {
 					},
 				},
 			},
+			"name": "2nd_cluster",
 		},
 	}
 
