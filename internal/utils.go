@@ -3,6 +3,7 @@ package internal
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"hash/crc32"
 	"io"
 	"os"
 )
@@ -29,4 +30,9 @@ func Md5sum(filePath string) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func CRC32hash(input []byte) int {
+	crc32Table := crc32.MakeTable(crc32.IEEE)
+	return int(crc32.Checksum(input, crc32Table))
 }

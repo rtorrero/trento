@@ -100,11 +100,9 @@ func getName() string {
 	if err != nil {
 		return ""
 	}
-	intVar, err := strconv.ParseInt(keyStr, 0, 64)
-	if err != nil {
-		return ""
-	}
-	rand.Seed(intVar)
+	intVar := internal.CRC32hash([]byte(keyStr))
+
+	rand.Seed(int64(intVar))
 	return petname.Generate(1, "-")
 }
 
