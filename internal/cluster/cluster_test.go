@@ -41,9 +41,10 @@ func TestClusterName(t *testing.T) {
 				},
 			},
 		},
+		Name: "cluster_name",
 	}
 
-	assert.Equal(t, "cluster_name", c.Name())
+	assert.Equal(t, "cluster_name", c.Name)
 }
 
 func TestIsDC(t *testing.T) {
