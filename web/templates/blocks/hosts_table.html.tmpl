@@ -16,7 +16,7 @@
                     <td>{{ .Name }}</td>
                     <td>{{ .Address }}</td>
                     <td>
-                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}">{{ index .TrentoMeta "trento-ha-cluster-id" }}</a>
+                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a>
                     </td>
                     <td>
                         {{- range $Key, $Value := .TrentoMeta }}
