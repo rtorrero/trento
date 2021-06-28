@@ -21,6 +21,7 @@
                     <td>
                         {{- range $Key, $Value := .TrentoMeta }}
                             {{- if eq $Key "trento-ha-cluster" }}
+                            {{- else if eq $Key "trento-ha-cluster-id" }}
                             {{- else }}
                                 <span class='badge badge-pill badge-info'>{{ $Value }}</span>
                             {{- end }}
