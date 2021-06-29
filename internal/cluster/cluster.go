@@ -22,6 +22,7 @@ const (
 	stonithResourceMissing string = "notconfigured"
 	stonithAgent           string = "stonith:"
 	sbdFencingAgentName    string = "external/sbd"
+	clusterNameWordCount   int    = 1
 )
 
 type Cluster struct {
@@ -29,7 +30,7 @@ type Cluster struct {
 	Crmmon crmmon.Root `mapstructure:"crmmon,omitempty"`
 	SBD    SBD         `mapstructure:"sbd,omitempty"`
 	Id     string      `mapstructure:"id"`
-	Name   string      `mapstructure:"name,omitempty"`
+	Name   string      `mapstructure:"name"`
 }
 
 func NewCluster() (Cluster, error) {
@@ -54,12 +55,15 @@ func NewCluster() (Cluster, error) {
 	cluster.Crmmon = crmmonConfig
 
 	// Set MD5-hashed key based on the corosync auth key
-	cluster.Id, err = getCorosyncAuthkey(corosyncKeyPath)
+	cluster.Id, err = getCorosyncAuthkeyMd5(corosyncKeyPath)
 	if err != nil {
 		return cluster, err
 	}
 
-	cluster.Name = getName()
+	cluster.Name, err = getName(cluster.Id)
+	if err != nil {
+		return cluster, err
+	}
 
 	if cluster.IsFencingSBD() {
 		sbdData, err := NewSBD(cluster.Id, SBDPath, SBDConfigPath)
@@ -73,20 +77,17 @@ func NewCluster() (Cluster, error) {
 	return cluster, nil
 }
 
-func getCorosyncAuthkey(corosyncKeyPath string) (string, error) {
+func getCorosyncAuthkeyMd5(corosyncKeyPath string) (string, error) {
 	kp, err := internal.Md5sum(corosyncKeyPath)
 	return kp, err
 }
 
-func getName() string {
-	keyStr, err := getCorosyncAuthkey(corosyncKeyPath)
-	if err != nil {
-		return ""
-	}
-	intVar := internal.CRC32hash([]byte(keyStr))
-
+// Use a CRC32 hash of the cluster ID as seed for the RNG
+func getName(clusterId string) (string, error) {
+	intVar := internal.CRC32hash([]byte(clusterId))
 	rand.Seed(int64(intVar))
-	return petname.Generate(1, "-")
+
+	return petname.Generate(clusterNameWordCount, "-"), nil
 }
 
 func (c *Cluster) IsDc() bool {
