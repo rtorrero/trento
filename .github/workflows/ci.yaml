@@ -91,9 +91,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: trento-amd64-binary
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-examples-rules
       - id: deploy
         uses: ./.github/actions/deploy
         with:
