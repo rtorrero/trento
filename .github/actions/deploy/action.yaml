@@ -7,8 +7,7 @@ inputs:
     default: 'agent'
 runs:
   using: "composite"
-  steps:
-    - uses: actions/checkout@v2
+  steps:    
     - name: stop-trento
       run: sudo systemctl stop trento-${{ inputs.role }}
       shell: bash
@@ -28,7 +27,7 @@ runs:
         if [ "${{ inputs.role }}" = "agent" ]; then
           rm -rf /srv/trento/examples
           mkdir /srv/trento/examples
-          mv *.yaml /srv/trento/examples/
+          mv examples/*.yaml /srv/trento/examples/
         fi
       shell: bash
     - name: start-consul
