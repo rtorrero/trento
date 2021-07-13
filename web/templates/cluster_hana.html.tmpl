@@ -77,17 +77,7 @@
             </div>
             <div class="col-sm-3">
                 <div class="mt-3">
-                    <h5>Health</h5>
-                    <div class="alert alert-inline alert-danger">
-                        <i class="eos-icons eos-18 alert-icon">error</i>
-                        <div class="alert-body">Critical</div>
-                        {{ .Nodes.CriticalCount }}
-                    </div>
-                    <div class="alert alert-inline alert-warning">
-                        <i class="eos-icons eos-18 alert-icon">warning</i>
-                        <div class="alert-body">Warning</div>
-                        {{ .Nodes.WarningCount }}
-                    </div>
+                    {{ template "health_container" .HealthContainer }}
                 </div>
             </div>
         </div>

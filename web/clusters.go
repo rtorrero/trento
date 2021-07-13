@@ -233,6 +233,18 @@ func (nodes Nodes) WarningCount() int {
 	return warning
 }
 
+func (nodes Nodes) PassingCount() int {
+	var warning int
+
+	for _, n := range nodes {
+		if n.Health == "passing" {
+			warning += 1
+		}
+	}
+
+	return warning
+}
+
 func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusters, err := cluster.Load(client)
@@ -279,11 +291,19 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		nodes := NewNodes(cluster, hosts)
+
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
 			"Cluster":          cluster,
-			"Nodes":            NewNodes(cluster, hosts),
+			"Nodes":            nodes,
 			"StoppedResources": stoppedResources(cluster),
 			"ClusterType":      clusterType,
+			"HealthContainer": &HealthContainer{
+				CriticalCount: nodes.CriticalCount(),
+				WarningCount:  nodes.WarningCount(),
+				PassingCount:  nodes.PassingCount(),
+				Layout:        "vertical`",
+			},
 		})
 	}
 }
