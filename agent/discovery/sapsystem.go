@@ -33,33 +33,49 @@ func (d SAPSystemsDiscovery) Discover() error {
 		return err
 	}
 
+	sapSystems := make([]*sapsystem.SAPSystem, len(systems))
 	d.SAPSystems = systems
-	for _, s := range d.SAPSystems {
+	for i, s := range d.SAPSystems {
 		err := s.Store(d.discovery.client)
 		if err != nil {
 			return err
 		}
 
-		// Store SAP System, Landscape and Environment names on hosts metadata
-		err = storeSAPSystemTags(d.discovery.client, s)
-		if err != nil {
-			return err
-		}
+		sapSystems[i] = s
+	}
+
+	// Store SAP System, Landscape and Environment names on hosts metadata
+	err = storeSAPSystemTags(d.discovery.client, sapSystems)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error {
-	envName, landName, sysName, err := loadSAPSystemTags(client, system.SID)
-	if err != nil {
-		return err
+func storeSAPSystemTags(client consul.Client, systems []*sapsystem.SAPSystem) error {
+	var envName, landName string
+	sysNames := ""
+	var err error
+	for i, system := range systems {
+		var sysName string
+		envName, landName, sysName, err = loadSAPSystemTags(client, system.SID)
+		if err != nil {
+			return err
+		}
+
+		sysNames += sysName
+		if len(systems) > (i + 1) {
+			sysNames = sysNames + ","
+		}
 	}
 
 	// If we didn't find any environment, we create a new default one
 	if envName == "" {
 		land := environments.NewDefaultLandscape()
-		land.AddSystem(environments.NewSystem(sysName, system.Type))
+		for _, system := range systems {
+			land.AddSystem(environments.NewSystem(system.SID, system.Type))
+		}
 		env := environments.NewDefaultEnvironment()
 		env.AddLandscape(land)
 
@@ -75,7 +91,7 @@ func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error
 	metadata := hosts.Metadata{
 		Environment: envName,
 		Landscape:   landName,
-		SAPSystem:   sysName,
+		SAPSystems:  sysNames,
 	}
 
 	err = metadata.Store(client)
