@@ -97,6 +97,22 @@ func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
 	return systems, nil
 }
 
+func (n *Host) GetSAPSystemsList() (sapsystem.SAPSystemsList, error) {
+	systems, err := sapsystem.Load(n.client, n.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	systemsList := make(sapsystem.SAPSystemsList, len(systems))
+	var i int
+	for _, value := range systems {
+		systemsList[i] = value
+		i++
+	}
+
+	return systemsList, nil
+}
+
 // Use github.com/hashicorp/go-bexpr to create the filter
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
@@ -111,7 +127,12 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 				filter = ""
 				values := query[key]
 				for _, value := range values {
-					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
+					if key == "trento-sap-systems" {
+						filter = fmt.Sprintf("%sMeta[\"%s\"] contains \"%s\"", filter, key, value)
+					} else {
+
+						filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
+					}
 					if values[len(values)-1] != value {
 						filter = fmt.Sprintf("%s or ", filter)
 					}
