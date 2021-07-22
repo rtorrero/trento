@@ -117,22 +117,25 @@ func (n *Host) GetSAPSystemsList() (sapsystem.SAPSystemsList, error) {
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
 	var filters []string
+	var operator string
 	// Need to sort the keys to have stable output. Mostly for unit testing
 	sortedQuery := sortKeys(query)
 
 	if len(query) != 0 {
 		var filter string
 		for _, key := range sortedQuery {
+			switch key {
+			case "trento-sap-systems":
+				operator = "contains"
+			default:
+				operator = "=="
+			}
 			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
 				values := query[key]
 				for _, value := range values {
-					if key == "trento-sap-systems" {
-						filter = fmt.Sprintf("%sMeta[\"%s\"] contains \"%s\"", filter, key, value)
-					} else {
+					filter = fmt.Sprintf("%sMeta[\"%s\"] %s \"%s\"", filter, key, operator, value)
 
-						filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
-					}
 					if values[len(values)-1] != value {
 						filter = fmt.Sprintf("%s or ", filter)
 					}

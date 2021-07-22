@@ -77,6 +77,19 @@ type CustomCommand func(name string, arg ...string) *exec.Cmd
 
 var customExecCommand CustomCommand = exec.Command
 
+func (systems SAPSystemsList) GetSIDs() string {
+	var sysNames string
+	for i, system := range systems {
+		separator := ","
+		if i < 1 {
+			separator = ""
+		}
+		sysNames = strings.Join([]string{sysNames, system.SID}, separator)
+	}
+
+	return sysNames
+}
+
 func NewSAPSystemsList() (SAPSystemsList, error) {
 	var systems = SAPSystemsList{}
 

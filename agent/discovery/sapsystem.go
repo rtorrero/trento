@@ -50,21 +50,10 @@ func (d SAPSystemsDiscovery) Discover() error {
 	return nil
 }
 
-func storeSAPSystemTags(client consul.Client, systems []*sapsystem.SAPSystem) error {
-	var envName, landName string
-	sysNames := ""
-	var err error
-	for i, system := range systems {
-		var sysName string
-		envName, landName, sysName, err = loadSAPSystemTags(client, system.SID)
-		if err != nil {
-			return err
-		}
-
-		sysNames += sysName
-		if len(systems) > (i + 1) {
-			sysNames = sysNames + ","
-		}
+func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
+	envName, landName, _, err := loadSAPSystemTags(client, systems[0].SID)
+	if err != nil {
+		return err
 	}
 
 	// If we didn't find any environment, we create a new default one
@@ -83,6 +72,8 @@ func storeSAPSystemTags(client consul.Client, systems []*sapsystem.SAPSystem) er
 		envName = env.Name
 		landName = land.Name
 	}
+
+	sysNames := systems.GetSIDs()
 
 	// Store host metadata
 	metadata := hosts.Metadata{

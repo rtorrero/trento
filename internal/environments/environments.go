@@ -107,6 +107,12 @@ func (l *Landscape) AddSystem(system *SAPSystem) {
 	l.SAPSystems[system.Name] = system
 }
 
+func (l *Landscape) AddSystems(systems []*SAPSystem) {
+	for _, system := range systems {
+		l.AddSystem(system)
+	}
+}
+
 func (s *SAPSystem) Health() EnvironmentHealth {
 	var health = NewEnvironmentHealth()
 
