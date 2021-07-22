@@ -33,19 +33,16 @@ func (d SAPSystemsDiscovery) Discover() error {
 		return err
 	}
 
-	sapSystems := make([]*sapsystem.SAPSystem, len(systems))
 	d.SAPSystems = systems
-	for i, s := range d.SAPSystems {
+	for _, s := range d.SAPSystems {
 		err := s.Store(d.discovery.client)
 		if err != nil {
 			return err
 		}
-
-		sapSystems[i] = s
 	}
 
 	// Store SAP System, Landscape and Environment names on hosts metadata
-	err = storeSAPSystemTags(d.discovery.client, sapSystems)
+	err = storeSAPSystemTags(d.discovery.client, d.SAPSystems)
 	if err != nil {
 		return err
 	}
