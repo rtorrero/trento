@@ -89,7 +89,7 @@ func (n *Host) HAChecks() *check.Controls {
 	return checks
 }
 
-func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
+func (n *Host) GetSAPSystems() (sapsystem.SAPSystemsMap, error) {
 	systems, err := sapsystem.Load(n.client, n.Name())
 	if err != nil {
 		return nil, err
@@ -97,20 +97,13 @@ func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
 	return systems, nil
 }
 
-func (n *Host) GetSAPSystemsList() (sapsystem.SAPSystemsList, error) {
-	systems, err := sapsystem.Load(n.client, n.Name())
+func (n *Host) GetSIDsString() string {
+	systems, err := n.GetSAPSystems()
 	if err != nil {
-		return nil, err
+		return ""
 	}
 
-	systemsList := make(sapsystem.SAPSystemsList, len(systems))
-	var i int
-	for _, value := range systems {
-		systemsList[i] = value
-		i++
-	}
-
-	return systemsList, nil
+	return systems.GetSIDsString()
 }
 
 // Use github.com/hashicorp/go-bexpr to create the filter

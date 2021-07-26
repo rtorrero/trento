@@ -30,6 +30,7 @@ const (
 )
 
 type SAPSystemsList []*SAPSystem
+type SAPSystemsMap map[string]*SAPSystem
 
 // A SAPSystem in this context is a SAP installation under one SID.
 // It will have application or database type, mutually exclusive
@@ -77,17 +78,24 @@ type CustomCommand func(name string, arg ...string) *exec.Cmd
 
 var customExecCommand CustomCommand = exec.Command
 
-func (systems SAPSystemsList) GetSIDs() string {
-	var sysNames string
-	for i, system := range systems {
-		separator := ","
-		if i < 1 {
-			separator = ""
-		}
-		sysNames = strings.Join([]string{sysNames, system.SID}, separator)
+func (sm SAPSystemsMap) GetSIDsString() string {
+	var sidString []string
+
+	for _, system := range sm {
+		sidString = append(sidString, system.SID)
 	}
 
-	return sysNames
+	return strings.Join(sidString, ",")
+}
+
+func (sl SAPSystemsList) GetSIDsString() string {
+	var sidString []string
+
+	for _, system := range sl {
+		sidString = append(sidString, system.SID)
+	}
+
+	return strings.Join(sidString, ",")
 }
 
 func NewSAPSystemsList() (SAPSystemsList, error) {

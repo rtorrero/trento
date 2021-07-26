@@ -73,7 +73,7 @@ func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) 
 		landName = land.Name
 	}
 
-	sysNames := systems.GetSIDs()
+	sysNames := systems.GetSIDsString()
 
 	// Store host metadata
 	metadata := hosts.Metadata{

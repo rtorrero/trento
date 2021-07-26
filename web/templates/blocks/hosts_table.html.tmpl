@@ -33,9 +33,9 @@
                         </a>
                     </td>
                     <td>
-                        {{- range $i, $v := .GetSAPSystemsList }}{{- if $i }},{{- end }}
-                            <a href='/sapsystems/{{ .SID }}?environment={{ index $TrentoMeta "trento-sap-environment" }}&landscape={{ index $TrentoMeta "trento-sap-landscape" }}'>
-                                {{ $v.SID }}
+                        {{- range $i, $v := split .GetSIDsString "," }}{{- if $i }},{{- end }}
+                            <a href='/sapsystems/{{ $v }}?environment={{ index $TrentoMeta "trento-sap-environment" }}&landscape={{ index $TrentoMeta "trento-sap-landscape" }}'>
+                                {{ $v }}
                             </a>
                         {{- end }}
                     </td>

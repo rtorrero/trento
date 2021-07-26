@@ -13,8 +13,8 @@
             <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
             <dt class="inline">SAP System</dt>
             <dd class="inline">
-                {{- range $i, $v := .Host.GetSAPSystemsList }}{{- if $i }},{{- end }} <a
-                        href="/sapsystems/{{ $v.SID }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $v.SID }}</a>{{- end }}
+                {{- range $i, $v := split (.Host).GetSIDsString ","}}{{- if $i }},{{- end }} <a
+                        href="/sapsystems/{{ $v }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $v }}</a>{{- end }}
             </dd>
 
             <dt class="inline">Cluster</dt>
