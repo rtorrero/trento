@@ -51,7 +51,7 @@ func (d SAPSystemsDiscovery) Discover() error {
 }
 
 func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
-	envName, landName, _, err := loadSAPSystemTags(client, systems[0].SID)
+	envName, landName, err := loadSAPSystemTags(client, systems[0].SID)
 	if err != nil {
 		return err
 	}
@@ -92,13 +92,13 @@ func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) 
 
 // These methods must go here. We cannot put them in the internal/sapsystem.go package
 // as this creates potential cyclical imports
-func loadSAPSystemTags(client consul.Client, sid string) (string, string, string, error) {
+func loadSAPSystemTags(client consul.Client, sid string) (string, string, error) {
 	var env, land string
 	sys := sid
 
 	envs, err := environments.Load(client)
 	if err != nil {
-		return env, land, sys, err
+		return env, land, err
 	}
 	for envKey, envValue := range envs {
 		for landKey, landValue := range envValue.Landscapes {
@@ -111,5 +111,5 @@ func loadSAPSystemTags(client consul.Client, sid string) (string, string, string
 			}
 		}
 	}
-	return env, land, sys, err
+	return env, land, err
 }

@@ -150,9 +150,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 			return a + b
 		},
 		"markdown": markdownToHTML,
-		"split": func(s string, sep string) []string {
-			return strings.Split(s, sep)
-		},
+		"split":    strings.Split,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))

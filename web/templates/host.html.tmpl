@@ -13,13 +13,13 @@
             <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
             <dt class="inline">SAP System</dt>
             <dd class="inline">
-                {{- range $i, $v := split (.Host).GetSIDsString ","}}{{- if $i }},{{- end }} <a
+                {{- range $i, $v := split (index .Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }} <a
                         href="/sapsystems/{{ $v }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $v }}</a>{{- end }}
             </dd>
 
             <dt class="inline">Cluster</dt>
             <dd class="inline"><a
-                        href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster-id" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a>
+                        href='/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster-id" }}'>{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a>
             </dd>
         </dl>
         <hr/>
