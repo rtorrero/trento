@@ -9,27 +9,37 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/hosts/{name}/tags:
-    get:
+  /api/clusters/{id}/tags:
+    post:
       consumes:
       - application/json
       parameters:
-      - description: Host name
+      - description: Cluster id
         in: path
-        name: name
+        name: id
         required: true
         type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            items:
-              $ref: '#/definitions/web.JSONTag'
-            type: array
+            $ref: '#/definitions/web.JSONTag'
         "404":
           description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
           schema:
             additionalProperties:
               type: string
@@ -40,7 +50,32 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get all tags that belong to a host
+      summary: Add tag to Cluster
+  /api/clusters/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cluster id
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a cluster
+  /api/hosts/{name}/tags:
     post:
       consumes:
       - application/json
@@ -92,7 +127,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: Tag name
+      - description: Tag
         in: path
         name: tag
         required: true
@@ -106,4 +141,70 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
+  /api/sapsystems/{id}/tags:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: SAPSystem id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to SAPSystem
+  /api/sapsystems/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: SAPSystem id
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a SAPSystem
 swagger: "2.0"

@@ -1,4 +1,5 @@
 {{ define "additional_scripts" }}
+    <script src="/static/frontend/assets/js/tags.js"></script>
     <script src="/static/frontend/assets/js/tables.js"></script>
 {{ end }}
 {{ define "content" }}
@@ -32,6 +33,13 @@
             {{- range .SAPSystemsTable.GetAllSIDs }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end }}
+        </select>
+        <select name="tags" id="tags_filter" class="selectpicker" multiple
+                data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
+                title="Tags">
+            {{- range .SAPSystemsTable.GetAllTags }}
+                <option value="{{ . }}">{{ . }}</option>
+            {{- end}}
         </select>
     </div>
     {{ template "sapsystems_table" .SAPSystemsTable }}

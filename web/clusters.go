@@ -330,7 +330,7 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, client consul.Client
 	return clusterTable, nil
 }
 
-func (t ClustersTable) Filter(name []string, health []string, sid []string, clusterType []string, tags []string) ClustersTable {
+func (t ClustersTable) filter(name []string, health []string, sid []string, clusterType []string, tags []string) ClustersTable {
 	var filteredClustersTable ClustersTable
 
 	for _, r := range t {
@@ -452,7 +452,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 		healthFilter := query["health"]
 		sidFilter := query["sid"]
 		nameFilter := query["name"]
-		clusterTypeFilter := query["type"]
+		clusterTypeFilter := query["cluster_type"]
 		tagsFilter := query["tags"]
 
 		clusters, err := cluster.Load(client)
@@ -467,7 +467,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter, tagsFilter)
+		clustersTable = clustersTable.filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter, tagsFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)
 		healthContainer.Layout = "horizontal"

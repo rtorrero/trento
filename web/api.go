@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/tags"
 )
@@ -185,16 +186,33 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Router /api/sapsystems/{id}/tags [post]
 func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		sid := c.Param("sid")
 
-		sapsystems, err := sapsystem.Load(client)
+		// TODO: store sapsystem outside hosts
+		hostList, err := hosts.Load(client, "", nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if _, ok := clusters[id]; !ok {
-			_ = c.Error(NotFoundError("could not find cluster"))
+		var system *sapsystem.SAPSystem
+		for _, h := range hostList {
+			sapSystems, err := h.GetSAPSystems()
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+
+			for _, s := range sapSystems {
+				if s.SID == sid {
+					system = s
+					break
+				}
+			}
+		}
+
+		if system == nil {
+			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 
@@ -206,7 +224,7 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
+		t := tags.NewTags(client, "sapsystems", sid)
 		t.Create(r.Tag)
 
 		c.JSON(http.StatusCreated, &r)
@@ -223,21 +241,38 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 // @Router /api/sapsystems/{name}/tags/{tag} [delete]
 func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		sid := c.Param("sid")
 		tag := c.Param("tag")
 
-		clusters, err := cluster.Load(client)
+		// TODO: store sapsystem outside hosts
+		hostList, err := hosts.Load(client, "", nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if _, ok := clusters[id]; !ok {
-			_ = c.Error(NotFoundError("could not find cluster"))
+		var system *sapsystem.SAPSystem
+		for _, h := range hostList {
+			sapSystems, err := h.GetSAPSystems()
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+
+			for _, s := range sapSystems {
+				if s.SID == sid {
+					system = s
+					break
+				}
+			}
+		}
+
+		if system == nil {
+			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
+		t := tags.NewTags(client, "sapsystems", sid)
 		err = t.Delete(tag)
 
 		if err != nil {
