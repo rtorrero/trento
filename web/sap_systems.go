@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/trento-project/trento/internal"
@@ -82,6 +83,10 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostList hosts.
 	for _, row := range rowsBySID {
 		sapSystemsTable = append(sapSystemsTable, row)
 	}
+
+	sort.Slice(sapSystemsTable, func(i, j int) bool {
+		return sapSystemsTable[i].SID < sapSystemsTable[j].SID
+	})
 
 	return sapSystemsTable
 }

@@ -9,10 +9,12 @@
                 <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
+                <th scope='col'>Tags</th>
             </tr>
             </thead>
             <tbody>
-            {{- range . }}
+            {{ $HostTags := .HostTags }}
+            {{- range .Hosts }}
                 {{ $TrentoMeta := .TrentoMeta }}
                 <tr>
                     <td class="row-status">
@@ -36,6 +38,13 @@
                             {{ $v }}
                         </a>
                         {{- end }}
+                    </td>
+                    <td>
+                        <select class="tags-input form-control" multiple="multiple" data-url="/api/hosts/{{ .Name }}/tags" autocomplete="off">
+                                {{- range (index $HostTags .Name) }}
+                                    <option value="{{ . }}" selected="selected">{{ . }}</option>
+                                {{- end }}
+                        </select>
                     </td>
                 </tr>
             {{- else }}

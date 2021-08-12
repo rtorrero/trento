@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/trento-project/trento/internal"
@@ -14,6 +15,7 @@ import (
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/internal/tags"
 )
 
 type Node struct {
@@ -46,7 +48,7 @@ func detectClusterType(c *cluster.Cluster) string {
 
 	for _, c := range c.Crmmon.Clones {
 		for _, r := range c.Resources {
-			switch r.Agent {
+			switch r.Agent { /*  */
 			case "ocf::suse:SAPHanaTopology":
 				hasSapHanaTopology = true
 			case "ocf::suse:SAPHana":
@@ -288,19 +290,25 @@ type ClustersRow struct {
 	Type            string
 	ResourcesNumber int
 	HostsNumber     int
+	Tags            []string
 }
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
+func NewClustersTable(clusters map[string]*cluster.Cluster, client consul.Client) (ClustersTable, error) {
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
 		var health string
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
-
 		sids = append(sids, getHanaSID(c))
+
+		t := tags.NewTags(client, "clusters", c.Id)
+		clusterTags, err := t.GetAll()
+		if err != nil {
+			return nil, err
+		}
 
 		clustersRow := &ClustersRow{
 			Id:              id,
@@ -310,38 +318,65 @@ func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
 			HostsNumber:     c.Crmmon.Summary.Nodes.Number,
+			Tags:            clusterTags,
 		}
 		clusterTable = append(clusterTable, clustersRow)
 	}
 
-	return clusterTable
+	sort.Slice(clusterTable, func(i, j int) bool {
+		return clusterTable[i].Name < clusterTable[j].Name
+	})
+
+	return clusterTable, nil
 }
 
-func (t ClustersTable) Filter(name []string, health []string, sid []string, clusterType []string) ClustersTable {
+func (t ClustersTable) Filter(name []string, health []string, sid []string, clusterType []string, tags []string) ClustersTable {
 	var filteredClustersTable ClustersTable
 
 	for _, r := range t {
-		nameFilter := len(name) == 0 || internal.Contains(name, r.Name)
-		healthFilter := len(health) == 0 || internal.Contains(health, r.Health)
+		if len(name) > 0 && !internal.Contains(name, r.Name) {
+			continue
+		}
 
-		sidFilter := false
-		if len(sid) == 0 {
-			sidFilter = true
-		} else {
+		if len(health) > 0 && !internal.Contains(health, r.Health) {
+			continue
+		}
+
+		if len(sid) > 0 {
+			sidFound := false
 			for _, s := range sid {
 				if internal.Contains(r.SIDs, s) {
-					sidFilter = true
+					sidFound = true
 					break
 				}
 			}
+
+			if !sidFound {
+				continue
+			}
 		}
 
-		clusterTypeFilter := len(clusterType) == 0 || internal.Contains(clusterType, r.Type)
-
-		if nameFilter && healthFilter && sidFilter && clusterTypeFilter {
-			filteredClustersTable = append(filteredClustersTable, r)
+		if len(clusterType) > 0 && !internal.Contains(clusterType, r.Type) {
+			continue
 		}
+
+		if len(tags) > 0 {
+			tagFound := false
+			for _, t := range tags {
+				if internal.Contains(r.Tags, t) {
+					tagFound = true
+					break
+				}
+			}
+
+			if !tagFound {
+				continue
+			}
+		}
+
+		filteredClustersTable = append(filteredClustersTable, r)
 	}
+
 	return filteredClustersTable
 }
 
@@ -350,11 +385,11 @@ func (t ClustersTable) GetAllSIDs() []string {
 	set := make(map[string]struct{})
 
 	for _, r := range t {
-		for _, s := range r.SIDs {
-			_, ok := set[s]
+		for _, sid := range r.SIDs {
+			_, ok := set[sid]
 			if !ok {
-				set[s] = struct{}{}
-				sids = append(sids, s)
+				set[sid] = struct{}{}
+				sids = append(sids, sid)
 			}
 		}
 	}
@@ -362,12 +397,28 @@ func (t ClustersTable) GetAllSIDs() []string {
 	return sids
 }
 
+func (t ClustersTable) GetAllTags() []string {
+	var tags []string
+	set := make(map[string]struct{})
+
+	for _, r := range t {
+		for _, tag := range r.Tags {
+			_, ok := set[tag]
+			if !ok {
+				set[tag] = struct{}{}
+				tags = append(tags, tag)
+			}
+		}
+	}
+
+	return tags
+}
+
 func (t ClustersTable) GetAllClusterTypes() []string {
 	var clusterTypes []string
 	set := make(map[string]struct{})
 
 	for _, r := range t {
-
 		_, ok := set[r.Type]
 		if !ok {
 			set[r.Type] = struct{}{}
@@ -402,6 +453,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 		sidFilter := query["sid"]
 		nameFilter := query["name"]
 		clusterTypeFilter := query["type"]
+		tagsFilter := query["tags"]
 
 		clusters, err := cluster.Load(client)
 		if err != nil {
@@ -409,8 +461,13 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clustersTable := NewClustersTable(clusters)
-		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
+		clustersTable, err := NewClustersTable(clusters, client)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter, tagsFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)
 		healthContainer.Layout = "horizontal"

@@ -1,0 +1,109 @@
+definitions:
+  web.JSONTag:
+    properties:
+      tag:
+        type: string
+    required:
+    - tag
+    type: object
+info:
+  contact: {}
+paths:
+  /api/hosts/{name}/tags:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Host name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web.JSONTag'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all tags that belong to a host
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Host name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to host
+  /api/hosts/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Host name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Tag name
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a host
+swagger: "2.0"

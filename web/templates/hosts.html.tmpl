@@ -1,5 +1,6 @@
 {{ define "additional_scripts" }}
-<script src="/static/frontend/assets/js/tables.js"></script>{{ end }}
+    <script src="/static/frontend/assets/js/tables.js"></script>
+{{ end }}
 {{ define "content" }}
     <div class="col">
         <div class="row">
@@ -36,7 +37,7 @@
 
             {{ template "health_filter" }}
         </div>
-        {{ template "hosts_table" .Hosts }}
+        {{ template "hosts_table" . }}
         {{ template "pagination" .Pagination }}
     </div>
 {{ end }}
