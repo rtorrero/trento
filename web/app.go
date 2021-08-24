@@ -79,7 +79,9 @@ func (a *App) Start() error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	storeAgentMetadata(a.Dependencies.consul, version.Version)
+	if err := storeAgentMetadata(a.Dependencies.consul, version.Version); err != nil {
+		panic(err)
+	}
 	return s.ListenAndServe()
 }
 
