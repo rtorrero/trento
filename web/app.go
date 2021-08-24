@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/version"
 )
 
 //go:embed frontend/assets
@@ -77,9 +79,23 @@ func (a *App) Start() error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	storeAgentMetadata(a.Dependencies.consul, version.Version)
 	return s.ListenAndServe()
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	a.engine.ServeHTTP(w, req)
+}
+
+func storeAgentMetadata(client consul.Client, version string) error {
+	metadata := hosts.Metadata{
+		AgentVersion: version,
+	}
+
+	err := metadata.Store(client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
