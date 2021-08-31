@@ -1,0 +1,10 @@
+{{ define "content" }}
+<form method="POST" action="/login">
+    <i class="fa fa-user fa-5x"></i>
+    <input id="email" name="email" placeholder="Enter your email" autofocus>
+    <p class="form-field-err"></p>
+    <input id="password" name="password" type="password" placeholder="Enter your password">
+    <p class="form-field-err"></p>
+    <button>Submit</button>
+</form>
+{{ end }}

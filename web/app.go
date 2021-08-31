@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/services"
 )
 
 //go:embed frontend/assets
@@ -24,15 +25,17 @@ type App struct {
 }
 
 type Dependencies struct {
-	consul consul.Client
-	engine *gin.Engine
+	consul       consul.Client
+	engine       *gin.Engine
+	usersService services.IUsersService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
+	usersService := services.NewUsersService()
 
-	return Dependencies{consulClient, engine}
+	return Dependencies{consulClient, engine, usersService}
 }
 
 // shortcut to use default dependencies
@@ -59,6 +62,8 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul))
 	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
 	engine.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
+	engine.GET("/login", NewLoginPageHandler())
+	engine.POST("/login", NewLoginHandler(deps.usersService))
 
 	apiGroup := engine.Group("/api")
 	{
