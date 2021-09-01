@@ -13,7 +13,7 @@ func NewLoginPageHandler() gin.HandlerFunc {
 	}
 }
 
-func NewLoginHandler(usersService services.IUsersService) gin.HandlerFunc {
+func NewLoginHandler(usersService services.UsersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		email := c.PostForm("email")
 		password := c.PostForm("password")

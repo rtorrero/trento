@@ -2,17 +2,17 @@ package services
 
 //go:generate mockery --all
 
-type IUsersService interface {
+type UsersService interface {
 	AuthenticateByEmailPassword(email string, password string) bool
 }
 
-type UsersService struct {
+type usersService struct {
 }
 
-func NewUsersService() *UsersService {
-	return &UsersService{}
+func NewUsersService() *usersService {
+	return &usersService{}
 }
 
-func (s *UsersService) AuthenticateByEmailPassword(email string, password string) bool {
+func (s *usersService) AuthenticateByEmailPassword(email string, password string) bool {
 	return email == "banana@suse.com" && password == "potato"
 }

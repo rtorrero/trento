@@ -27,7 +27,7 @@ type App struct {
 type Dependencies struct {
 	consul       consul.Client
 	engine       *gin.Engine
-	usersService services.IUsersService
+	usersService services.UsersService
 }
 
 func DefaultDependencies() Dependencies {

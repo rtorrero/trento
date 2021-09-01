@@ -14,7 +14,7 @@ import (
 )
 
 func TestLoginHandler(t *testing.T) {
-	usersServiceMock := new(mocks.IUsersService)
+	usersServiceMock := new(mocks.UsersService)
 	usersServiceMock.On("AuthenticateByEmailPassword", mock.Anything, mock.Anything).Return(true)
 
 	deps := DefaultDependencies()
