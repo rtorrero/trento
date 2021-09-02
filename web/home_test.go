@@ -9,7 +9,8 @@ import (
 )
 
 func TestHomeHandler(t *testing.T) {
-	app, err := NewApp("", 80)
+	deps := defaultTestDependencies()
+	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -108,7 +108,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -176,7 +176,7 @@ func TestSAPSystemHandler(t *testing.T) {
 	health.On("Node", "test_host", mock.Anything).Return(passHealthChecks, nil, nil)
 	consulInst.On("Health").Return(health)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -226,7 +226,7 @@ func TestSAPSystemHandler404Error(t *testing.T) {
 	kv.On("ListMap", p, p).Return(m, nil)
 	consulInst.On("KV").Return(kv)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	var err error

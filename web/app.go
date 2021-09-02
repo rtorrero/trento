@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
@@ -25,17 +26,21 @@ type App struct {
 }
 
 type Dependencies struct {
-	consul       consul.Client
-	engine       *gin.Engine
-	usersService services.UsersService
+	consul         consul.Client
+	engine         *gin.Engine
+	sessionsStore  sessions.Store
+	authMiddleware gin.HandlerFunc
+	usersService   services.UsersService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
+	sessionsStore := sessions.NewCookieStore([]byte("secret"))
 	usersService := services.NewUsersService()
+	authMiddleware := AuthRequired
 
-	return Dependencies{consulClient, engine, usersService}
+	return Dependencies{consulClient, engine, sessionsStore, authMiddleware, usersService}
 }
 
 // shortcut to use default dependencies
@@ -51,21 +56,27 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	}
 
 	engine := deps.engine
+	engine.Use(sessions.Sessions("trento", deps.sessionsStore))
+
 	engine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
 	engine.Use(ErrorHandler)
 	engine.StaticFS("/static", http.FS(assetsFS))
-	engine.GET("/", HomeHandler)
-	engine.GET("/hosts", NewHostListHandler(deps.consul))
-	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
-	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
-	engine.GET("/clusters", NewClusterListHandler(deps.consul))
-	engine.GET("/clusters/:id", NewClusterHandler(deps.consul))
-	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
-	engine.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
+
 	engine.GET("/login", NewLoginPageHandler())
 	engine.POST("/login", NewLoginHandler(deps.usersService))
+	engine.GET("/logout", NewLogoutHandler())
+	private := engine.Group("/")
+	private.Use(deps.authMiddleware)
+	private.GET("/", HomeHandler)
+	private.GET("/hosts", NewHostListHandler(deps.consul))
+	private.GET("/hosts/:name", NewHostHandler(deps.consul))
+	private.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
+	private.GET("/clusters", NewClusterListHandler(deps.consul))
+	private.GET("/clusters/:id", NewClusterHandler(deps.consul))
+	private.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
+	private.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
 
-	apiGroup := engine.Group("/api")
+	apiGroup := private.Group("/api")
 	{
 		apiGroup.GET("/ping", ApiPingHandler)
 	}

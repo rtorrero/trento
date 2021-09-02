@@ -17,7 +17,8 @@ func TestLoginHandler(t *testing.T) {
 	usersServiceMock := new(mocks.UsersService)
 	usersServiceMock.On("AuthenticateByEmailPassword", mock.Anything, mock.Anything).Return(true)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
+	deps.authMiddleware = AuthRequired
 	deps.usersService = usersServiceMock
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -36,7 +37,56 @@ func TestLoginHandler(t *testing.T) {
 	req.Header.Add("Content-Length", strconv.Itoa(len(getLoginFormPayload())))
 
 	app.ServeHTTP(resp, req)
-	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, 302, resp.Code)
+	assert.Equal(t, "/", resp.Header().Get("Location"))
+}
+
+func TestLogoutHandler(t *testing.T) {
+	deps := defaultTestDependencies()
+	deps.authMiddleware = AuthRequired
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := http.NewRequest("POST", "/login", strings.NewReader(getLoginFormPayload())); err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/logout", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+	assert.Equal(t, 302, resp.Code)
+	assert.Equal(t, "/login", resp.Header().Get("Location"))
+}
+
+func TestAuthRequired(t *testing.T) {
+	deps := defaultTestDependencies()
+	deps.authMiddleware = AuthRequired
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+	assert.Equal(t, 302, resp.Code)
+	assert.Equal(t, "/login", resp.Header().Get("Location"))
 }
 
 func getLoginFormPayload() string {

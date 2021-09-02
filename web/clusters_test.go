@@ -268,7 +268,7 @@ func TestClustersListHandler(t *testing.T) {
 	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
 	consulInst.On("Health").Return(health)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -347,7 +347,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
 	consulInst.On("Health").Return(health)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -409,7 +409,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -444,7 +444,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

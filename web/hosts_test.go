@@ -132,7 +132,7 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -268,7 +268,7 @@ func TestHostHandler(t *testing.T) {
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -377,7 +377,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -421,7 +421,7 @@ func TestHostHandler404Error(t *testing.T) {
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -451,7 +451,7 @@ func TestHAChecksHandler404(t *testing.T) {
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := defaultTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
