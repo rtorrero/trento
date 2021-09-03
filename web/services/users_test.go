@@ -55,7 +55,7 @@ func TestCreateUserByEmailPassword(t *testing.T) {
 	db := setupUsersTest()
 	usersService := NewUsersService(db)
 
-	usersService.CreateUserByEmailPassword("tomata@suse.com", "securetomato")
+	usersService.CreateUserByEmailPassword("tomato@suse.com", "securetomato")
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("securetomato"), bcrypt.DefaultCost)
 
 	assert.Equal(t, getUserByEmail(db, "tomato@suse.com").Password, hashedPassword)
