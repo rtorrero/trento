@@ -8,8 +8,12 @@ import (
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -37,8 +41,29 @@ func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
 	sessionsStore := sessions.NewCookieStore([]byte("secret"))
-	usersService := services.NewUsersService()
 	authMiddleware := AuthRequired
+
+	// FIXME: We should read this from a config file
+	dbHost := internal.GetEnv("TRENTO_DB_HOST", "localhost")
+	dbName := internal.GetEnv("TRENTO_DB_NAME", "trento")
+	dbUser := internal.GetEnv("TRENTO_DB_USER", "trento")
+	dbPass := internal.GetEnv("TRENTO_DB_PASS", "changeme") //FIXME: Remove this (just here to make testing easier)
+	dbPort := internal.GetEnv("TRENTO_DB_PORT", "5432")
+	dbTz := internal.GetEnv("TZ", "UTC")
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s", dbHost, dbUser, dbPass, dbName, dbPort, dbTz)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.AutoMigrate(models.User{})
+	if err != nil {
+		panic(err)
+	}
+
+	usersService := services.NewUsersService(db)
 
 	return Dependencies{consulClient, engine, sessionsStore, authMiddleware, usersService}
 }

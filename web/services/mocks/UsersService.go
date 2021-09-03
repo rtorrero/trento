@@ -22,3 +22,8 @@ func (_m *UsersService) AuthenticateByEmailPassword(email string, password strin
 
 	return r0
 }
+
+// CreateUserByEmailPassword provides a mock function with given fields: email, password
+func (_m *UsersService) CreateUserByEmailPassword(email string, password string) {
+	_m.Called(email, password)
+}

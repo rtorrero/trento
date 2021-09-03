@@ -90,3 +90,11 @@ func CRC32hash(input []byte) int {
 	return int(crc32.Checksum(input, crc32Table))
 
 }
+
+func GetEnv(varname, defaultValue string) string {
+	value := os.Getenv(varname)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
+}
