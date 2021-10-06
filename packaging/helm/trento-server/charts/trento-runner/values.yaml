@@ -7,9 +7,9 @@ replicaCount: 1
 privateKey: ""
 
 image:
-  repository: ghcr.io/trento-project/trento-runner
+  repository: ghcr.io/aleksei-burlakov/alex-runner
   pullPolicy: Always
-  tag: "rolling"
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
