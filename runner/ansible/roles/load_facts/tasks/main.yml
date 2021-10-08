@@ -17,3 +17,12 @@
   debug:
     var: expected
     verbosity: 1
+
+- name: Get corosync configuration file content
+  command: md5sum /etc/corosync/corosync.conf
+  register: corosync_md5_content
+
+- name: Set corosync configuration file content
+  set_fact:
+    corosync_file_md5: "{{ corosync_md5_content.stdout }}"
+  delegate_facts: True

@@ -9,6 +9,9 @@ remediation: |
   ## Abstract
   It is required that the corosync.conf files are identical across nodes.
 
+  ## Remediation
+  Use the same /etc/corosync/corosync.conf configuration file in all cluster nodes
+
   ## References
   - section 9.1.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-adapting-the-corosync-and-sbd-configuration
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
