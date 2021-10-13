@@ -10,7 +10,7 @@ else
 	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)"
 endif
 
-default: clean mod-tidy fmt vet-check test build
+default: clean mod-tidy fmt vet-check swag test build
 
 .PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate swag mod-tidy test vet-check web-assets
 
