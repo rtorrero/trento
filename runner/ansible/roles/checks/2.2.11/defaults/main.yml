@@ -1,0 +1,17 @@
+---
+
+name: 2.2.10
+group: OS and package versions
+labels: hana
+description: |
+  Test if OS version is consistent across all nodes
+remediation: |
+  ## Abstract
+  All the nodes within a cluster need to be running the same OS version.
+
+  ## References
+  - T.B.D.
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: 3643DF
