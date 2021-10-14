@@ -1,21 +1,9 @@
-
 ---
-
-- name:  "{{ name }} get os-release file content"
-  command: md5sum /etc/os-release
-  register: os-release_md5_content
-  check_mode: false
-  changed_when: false
-
-- name: "{{ name }} set os-release file content"
-  set_fact:
-    os-release_file_md5: "{{ os-release_md5_content.stdout }}"
-  delegate_facts: true
 
 - name: "{{ name }}.check"
   assert:
     that:
-      - "{{ groups[item] | map('extract', hostvars) | map(attribute='os-release_file_md5') | list | unique | length }} == 1"
+      - "{{ groups[item] | map('extract', hostvars) | map(attribute='ansible_distribution_version') | list | unique | length }} == 1"
     quiet: true
   loop: "{{ group_names }}"
   register: config_updated
