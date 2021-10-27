@@ -11,10 +11,6 @@ on:
 
 env:
   PACKAGE_NAME: trento
-  OBS_USER: ${{ secrets.OBS_USER }}
-  OBS_PASS: ${{ secrets.OBS_PASS }}
-  OBS_PROJECT: ${{ secrets.OBS_PROJECT}}
-  TARGET_PROJECT: ${{ secrets.TARGET_PROJECT}}
   FOLDER: packaging/suse
   REPOSITORY: ${{ github.repository }}
 
@@ -256,6 +252,9 @@ jobs:
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
       env:
+        OBS_USER: ${{ secrets.OBS_USER }}
+        OBS_PASS: ${{ secrets.OBS_PASS }}
+        OBS_PROJECT: ${{ secrets.OBS_PROJECT }}        
         GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v2
@@ -288,6 +287,76 @@ jobs:
     if: github.event.release
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
+      env:
+        OBS_USER: ${{ secrets.OBS_USER }}
+        OBS_PASS: ${{ secrets.OBS_PASS }}
+        OBS_PROJECT: ${{ secrets.OBS_PROJECT }}
+        TARGET_PROJECT: ${{ secrets.TARGET_PROJECT }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: prepare _service file
+      run: |
+        VERSION=$(./hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: submit package
+      run: cp $FOLDER/_service . && /scripts/submit.sh
+
+  ibs-commit:
+    needs: test
+    runs-on: ubuntu-18.04
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    container:
+      image: ghcr.io/trento-project/continuous-delivery:master
+      env:
+        OBS_USER: ${{ secrets.IBS_USER }}
+        OBS_PASS: ${{ secrets.IBS_PASS }}
+        OBS_PROJECT: ${{ secrets.IBS_PROJECT }}        
+        GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+    # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
+    # that is used to run osc commands
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: Prepare trento.changes file
+      run: |
+        VERSION=$(./hack/get_version_from_git.sh)
+        TAG=$(echo $VERSION | cut -f1 -d+)
+        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+    - name: prepare _service file
+      run: |
+        VERSION=$(./hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: commit changes into OBS
+      run: cp $FOLDER/_service . && /scripts/upload.sh
+
+  ibs-submit:
+    needs: ibs-commit
+    runs-on: ubuntu-18.04
+    if: github.event.release
+    container:
+      image: ghcr.io/trento-project/continuous-delivery:master
+      env:
+        OBS_USER: ${{ secrets.IBS_USER }}
+        OBS_PASS: ${{ secrets.IBS_PASS }}
+        OBS_PROJECT: ${{ secrets.IBS_PROJECT }}
+        TARGET_PROJECT: ${{ secrets.IBS_TARGET_PROJECT }}
     steps:
     - uses: actions/checkout@v2
       with:
