@@ -8,8 +8,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/collector"
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/version"
 	"github.com/zcalusic/sysinfo"
 )
 
@@ -90,15 +92,22 @@ func (h HostDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
+	cloudProvider, err := cloud.IdentifyCloudProvider()
+
+	if err != nil {
+		log.Debugf("Error while identifying cloud provider: %s", err)
+		return "", err
+	}
+
 	host := DiscoveredHost{
 		ipAddressesList,
 		h.discovery.host,
-		"archbtw",
-		1,
-		1,
-		1,
-		"",
-		"",
+		si.OS.Version,
+		int(si.CPU.Cpus) * int(si.CPU.Cores), // What do they expect with CPU count?
+		int(si.CPU.Cpus),
+		int(si.Memory.Size),
+		cloudProvider,
+		version.Version,
 	}
 
 	err = h.discovery.collectorClient.Publish(h.id, host)
