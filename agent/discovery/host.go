@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/zcalusic/sysinfo"
 )
 
 const HostDiscoveryId string = "host_discovery"
@@ -17,6 +19,23 @@ type HostDiscovery struct {
 	id        string
 	discovery BaseDiscovery
 }
+
+type DiscoveredHost struct {
+	HostIpAddresses []string
+	HostName        string
+	SlesVersion     string
+	CPUCount        int
+	SocketCount     int
+	TotalMemory     int
+	CloudProvider   string
+	AgentVersion    string
+}
+
+// SLES version
+// number of CPUs per host
+// number of sockets per host
+// amount of memory (RAM) per host
+// cloud provider / bare metal environment (AWS, Azure, Google, private data center etc - where easy identifiable) per host
 
 func NewHostDiscovery(consulClient consul.Client, collectorClient collector.Client) HostDiscovery {
 	d := HostDiscovery{}
@@ -31,6 +50,18 @@ func (h HostDiscovery) GetId() string {
 
 // Execute one iteration of a discovery and store the result in the Consul KVStore.
 func (h HostDiscovery) Discover() (string, error) {
+
+	var si sysinfo.SysInfo
+
+	si.GetSysInfo()
+
+	data, err := json.MarshalIndent(&si, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(data))
+
 	ipAddresses, err := getHostIpAddresses()
 	if err != nil {
 		return "", err
@@ -44,11 +75,31 @@ func (h HostDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
+	// SLES version
+	// number of CPUs per host
+	// number of sockets per host
+	// amount of memory (RAM) per host
+	// cloud provider / bare metal environment (AWS, Azure, Google, private data center etc - where easy identifiable) per host
+
 	// TODO: this needs to be redesigned to capture what we are discovering about a Host
-	host := struct {
-		HostIpAddresses string
-		HostName        string
-	}{ipAddresses, h.discovery.host}
+
+	ipAddressesList, err := getHostIpAddressesList()
+
+	if err != nil {
+		log.Debugf("Error while getting HostIpAddresses: %s", err)
+		return "", err
+	}
+
+	host := DiscoveredHost{
+		ipAddressesList,
+		h.discovery.host,
+		"archbtw",
+		1,
+		1,
+		1,
+		"",
+		"",
+	}
 
 	err = h.discovery.collectorClient.Publish(h.id, host)
 	if err != nil {
@@ -60,9 +111,19 @@ func (h HostDiscovery) Discover() (string, error) {
 }
 
 func getHostIpAddresses() (string, error) {
-	interfaces, err := net.Interfaces()
+	ips, err := getHostIpAddressesList()
+
 	if err != nil {
 		return "", err
+	}
+
+	return strings.Join(ips, ","), nil
+}
+
+func getHostIpAddressesList() ([]string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
 	}
 
 	ipAddrList := make([]string, 0)
@@ -79,5 +140,9 @@ func getHostIpAddresses() (string, error) {
 		}
 	}
 
-	return strings.Join(ipAddrList, ","), nil
+	return ipAddrList, nil
+}
+
+func getHostSLESRelease() (string, error) {
+	return "banana", nil
 }
