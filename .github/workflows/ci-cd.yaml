@@ -96,6 +96,7 @@ jobs:
 
   build-container-images:
     runs-on: ubuntu-20.04
+    if: github.event_name == 'release' || (github.event_name == 'push' && github.ref_name == 'main') || github.event_name == 'workflow_dispatch'
     needs: [test-binary, test-checks]
     strategy:
       matrix:
@@ -108,8 +109,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
-      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"
-      PUSH: "${{ github.event_name == 'release' || (github.event_name == 'push' && github.ref_name == 'main') || github.event_name == 'workflow_dispatch' }}"
+      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"      
     steps:
       - uses: actions/checkout@v2
         with:
@@ -130,7 +130,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          push: ${{ env.PUSH }}
+          push: true
           target: ${{ matrix.image }}
           tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
