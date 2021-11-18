@@ -137,8 +137,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-container-assets:
-    build-container-images:
+  build-container-assets:    
     runs-on: ubuntu-20.04
     needs: [test-binary, test-checks]
     strategy:
