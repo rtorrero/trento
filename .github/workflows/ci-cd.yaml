@@ -146,7 +146,7 @@ jobs:
         image:
           - trento-web
           - trento-runner
-  permissions:
+    permissions:
       contents: read
       packages: write
     env:
