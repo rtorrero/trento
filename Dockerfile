@@ -38,7 +38,7 @@ COPY --from=go-build /build/trento /app/trento
 LABEL org.opencontainers.image.source="https://github.com/trento-project/trento"
 ENTRYPOINT ["/tini", "--", "/app/trento"]
 
-FROM registry.suse.com/bci/micro:15.3 AS trento-web
+FROM registry.suse.com/bci/bci-micro:15.3 AS trento-web
 COPY --from=go-build /build/trento /app/trento
 LABEL org.opencontainers.image.source="https://github.com/trento-project/trento"
 EXPOSE 8080/tcp
